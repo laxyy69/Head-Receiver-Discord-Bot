@@ -56,11 +56,7 @@ async def add_exp(users, member, exp):
 async def lvl_up(users, member, channel, lvl_down=False):
     exp = users[str(member.id)]['exp']
     lvl_start = users[str(member.id)]['lvl']
-    lvl_end = int(exp ** (1/4))\
-
-    #if lvl_down:
-        #await channel.send('{} has leveled up to level {}'.format(member.mention, lvl_end))
-        #users[str(member.id)]['lvl'] = lvl_end
+    lvl_end = int(exp ** (1/4))
     
     if lvl_start < lvl_end or lvl_down == True:
         await channel.send('{} has leveled up to level {}'.format(member.mention, lvl_end))
@@ -118,6 +114,7 @@ async def rank(ctx, member : discord.Member=None):
 
 
 @client.command()
+@commands.has_permissions(kick_members=True)
 async def kick(ctx, member : discord.Member, *, reason=None):
     await member.kick(reason=reason)
     await ctx.send(f'{member} got kicked.')
