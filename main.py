@@ -69,6 +69,7 @@ async def on_member_remove(member):
     
 
 @client.command()
+@commands.has_permissions(administrator=True)
 async def add(ctx, amount=None, *, member : discord.Member): # ADD !!!
     if not amount == None:
         with open('users.json') as f:
@@ -82,6 +83,7 @@ async def add(ctx, amount=None, *, member : discord.Member): # ADD !!!
 
 
 @client.command()
+@commands.has_permissions(administrator=True)
 async def remove(ctx, amount=None, *, member : discord.Member): # REMOVE !!!
     if not amount == None:
         with open('users.json') as f:
@@ -100,6 +102,7 @@ async def ping(ctx):
 
 
 @client.command()
+@commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount=100):
     amount += 1
     await ctx.channel.purge(limit=amount)
@@ -135,6 +138,7 @@ async def bans(ctx):
 
 
 @client.command()
+@commands.has_permissions(ban_members=True)
 async def unban(ctx, *, member):
     banned_users = await ctx.guild.bans()
     member_name, member_discriminator = member.split('#')
