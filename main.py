@@ -12,6 +12,8 @@ client = commands.Bot(command_prefix='.', intents=intents)
 @client.event
 async def on_ready():
     print(f"{client.user} is online.")
+    general = client.get_channel(347364869357436941)
+    await general.send(f"{client.user} is online.")
 
 
 @client.event
@@ -27,6 +29,10 @@ async def on_member_join(member):
 
 @client.event
 async def on_message(message):
+    if isinstance(message.channel, discord.DMChannel) and not (message.author == client.user):
+        dm_base = client.get_channel(815396624918118421)
+        await dm_base.send(f'{message.author} ({message.author.id}):\n{message.content}')
+
     with open('users.json') as f:
         users = json.load(f)
 
@@ -58,7 +64,7 @@ async def lvl_up(users, member, channel, lvl_down=False):
     lvl_start = users[str(member.id)]['lvl']
     lvl_end = int(exp ** (1/4))
     
-    if lvl_start < lvl_end or lvl_down == True:
+    if int(lvl_start) < lvl_end or lvl_down == True:
         await channel.send('{} has leveled up to level {}'.format(member.mention, lvl_end))
         users[str(member.id)]['lvl'] = lvl_end
 
@@ -66,6 +72,19 @@ async def lvl_up(users, member, channel, lvl_down=False):
 @client.event
 async def on_member_remove(member):
     print('A member has left the server ', member)
+
+
+@client.command()
+async def servers(ctx):
+  servers = list(client.guilds)
+  await ctx.send(f"Connected on {str(len(servers))} servers:")
+  await ctx.send('\n'.join(guild.name for guild in servers))
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def dm(ctx, member : discord.Member, *, msg):
+    await member.send(msg)
     
 
 @client.command()
@@ -94,6 +113,20 @@ async def remove(ctx, amount=None, *, member : discord.Member): # REMOVE !!!
         await lvl_up(users, member, ctx.channel, True)
         with open('users.json', 'w') as f:
             json.dump(users, f, indent=2)
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def set_level(ctx, lvl, *, member : discord.Member):
+    with open('users.json') as f:
+        users = json.load(f)
+    
+    users[str(member.id)]['lvl'] = lvl
+
+    with open('users.json', 'w') as f:
+        json.dump(users, f, indent=2)
+
+    await rank(ctx, member)
 
 
 @client.command()
