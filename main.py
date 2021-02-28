@@ -29,21 +29,31 @@ async def on_member_join(member):
 
 @client.event
 async def on_message(message):
-    if isinstance(message.channel, discord.DMChannel) and not (message.author == client.user):
-        dm_base = client.get_channel(815396624918118421)
-        await dm_base.send(f'{message.author} ({message.author.id}):\n{message.content}')
+    if not message.author.bot:
+        if isinstance(message.channel, discord.DMChannel) and not (message.author == client.user):
+            dm_base = client.get_channel(815396624918118421)
+            await dm_base.send(f'{message.author} ({message.author.id}):\n{message.content}')
 
-    with open('users.json') as f:
-        users = json.load(f)
+        with open('users.json') as f:
+            users = json.load(f)
 
-    await add_user(users, message.author)
-    await add_exp(users, message.author, int(len(message.content) / 1.5))
-    await lvl_up(users, message.author, message.channel)
+        await add_user(users, message.author)
+        await add_exp(users, message.author, int(len(message.content) / 1.5))
+        await lvl_up(users, message.author, message.channel)
 
-    with open('users.json', 'w') as f:
-        json.dump(users, f, indent=2)
+        with open('users.json', 'w') as f:
+            json.dump(users, f, indent=2)
 
-    await client.process_commands(message)
+        await client.process_commands(message)
+
+
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        embe=discord.Embed(title="<:redcross:781952086454960138>Error", description="**Insufficient permissions!**", color=0x7289da)
+        await ctx.send(embed=embe)
+    else:
+        await ctx.send("Error: something went wrong.")
 
 
 async def add_user(users, member):
@@ -143,10 +153,23 @@ async def clear(ctx, amount=100):
 
 @client.command()
 async def rank(ctx, member : discord.Member=None):
+    if member == None or not member.bot:
+        with open('users.json') as f:
+            users = json.load(f)
+        exp = users[str(ctx.author.id) if member == None else str(member.id)]['exp']
+        await ctx.send(f"{ctx.author.mention if member == None else member.mention} is level: {users[str(ctx.author.id) if member == None else str(member.id)]['lvl']}\nExp: {exp}")
+    else:
+        await ctx.send(f"Bots don't have a rank.")
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def all_ranks(ctx):
     with open('users.json') as f:
         users = json.load(f)
-    exp = users[str(ctx.author.id) if member == None else str(member.id)]['exp']
-    await ctx.send(f"{ctx.author.mention if member == None else member.mention} is level: {users[str(ctx.author.id) if member == None else str(member.id)]['lvl']}\nExp: {exp}")
+    for user_id in users:
+        user = client.get_user(int(user_id))
+        await ctx.send(f"{user}: Level: {users[str(user.id)]['lvl']}  -  Exp: {users[str(user.id)]['exp']}")
 
 
 @client.command()
@@ -166,8 +189,11 @@ async def ban(ctx, member : discord.Member, *, reason=None):
 @client.command()
 async def bans(ctx):
     banned_users = await ctx.guild.bans()
-    for ban_usr in banned_users:
-        await ctx.send(ban_usr)
+    if len(banned_users) > 0:
+        for ban_usr in banned_users:
+            await ctx.send(ban_usr)
+    else:
+        await ctx.send('There are nobody banned from this server.')
 
 
 @client.command()
@@ -184,4 +210,4 @@ async def unban(ctx, *, member):
             return
 
 keep_alive()
-client.run(os.getenv('TOKEN'))
+client.run(os.getenv('SUPER_SECRET_TOKEN_THAT_YOU_WONT_SEE'))
