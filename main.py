@@ -206,7 +206,7 @@ async def unban(ctx, *, member):
         user = ban_entry.user
         if (user.name, user.discriminator) == (member_name, member_discriminator):
             await ctx.guild.unban(user)
-            await ctx.send(f'{user.name}#{user.id} is now unbanned.')
+            await ctx.send(f'{user} is now unbanned.')
             return
 
 keep_alive()
